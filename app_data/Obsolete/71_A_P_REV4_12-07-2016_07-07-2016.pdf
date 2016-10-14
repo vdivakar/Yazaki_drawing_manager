@@ -1,0 +1,302 @@
+import Tkinter as tk
+import tkMessageBox as tkmb
+import tkFileDialog
+import ttk
+from PIL import Image
+
+LARGE_FONT= ("Verdana", 12)
+
+user_database = {
+	"a" : "a",
+	"gen" : "5678",
+	"emp" : "abcd"
+}
+
+file_name = ''
+
+class Application(tk.Tk):
+
+    def __init__(self, *args, **kwargs):
+        
+        tk.Tk.__init__(self, *args, **kwargs)
+        container = tk.Frame(self)
+        self.title("Part Revision Manager: Yazaki")
+
+        container.pack(side="top", fill="both", expand = True)
+
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames = {}
+
+        for F in (LoginPage, Admin_Page, PartMaster, UserMaster):
+            frame = F(container, self)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        self.show_frame(LoginPage)
+
+    def show_frame(self, cont):
+
+        frame = self.frames[cont]
+        frame.update()
+        frame.tkraise()
+   
+class LoginPage(tk.Frame):
+	
+	def about(self):
+		tkmb.showinfo("About", "Made by:\nAkanksha Dara\nDivakar Verma\nBITS Pilani")
+		# tk.Message(self, text = "Made by:\nAkanksha Dara\nDivakar Verma\nBITS Pilani")
+
+	def login_func(self, user, pw, controller):
+			global user_database
+			try:
+				if(pw.get() == user_database[user.get()]):
+					print "welcome"
+					controller.show_frame(Admin_Page)
+					pw.set('')
+					user.set('')
+			# open the new (main) window from here
+			except:
+			 	tkmb.showerror("ERROR", "Invalid Credentials\nCheck Username/Password!")
+
+
+
+	def __init__(self, parent, controller):
+		tk.Frame.__init__(self,parent)
+		top = self.winfo_toplevel()
+		top.rowconfigure(0, weight = 1)
+		top.columnconfigure(0, weight = 1)
+		top = self.winfo_toplevel()
+		self.menuBar = tk.Menu(top)
+		top['menu'] = self.menuBar
+		self.subMenu1 = tk.Menu(self.menuBar)
+		self.subMenu2 = tk.Menu(self.menuBar)
+		self.subMenu3 = tk.Menu(self.menuBar)
+		
+		self.menuBar.add_cascade(label='File', menu=self.subMenu1)
+		self.subMenu1.add_command(label='About', command = self.about)
+		self.subMenu1.add_command(label = 'Exit', command=self.quit)
+		self.menuBar.add_cascade(label='Help', menu=self.subMenu2)
+		
+		label = tk.Label(self, text="Yazaki Part Revision Manager: Login to get access!", font=LARGE_FONT)
+		label.grid(row = 1, column = 1, pady= (50, 20), padx = 150, columnspan = 5)	
+		user_name = tk.StringVar() # defines the widget state as string
+		pword = tk.StringVar()
+		user_label = tk.Label(self, text = "Username:")
+		user_label.grid(row = 3, column = 1, padx = (100, 10), pady = 10, columnspan = 2)
+		user_form = tk.Entry(self,textvariable=user_name) # adds a textarea widget
+		user_form.grid(row = 3, column = 3, padx = 5, pady = 10, columnspan = 2)
+		pword_label = tk.Label(self, text = "Password:")
+		pword_label.grid(row = 4, column = 1, padx = (100, 10), pady = 10, columnspan = 2)
+		pword_form = tk.Entry(self,textvariable=pword, show = "*")
+		pword_form.grid(row = 4, column = 3, padx = 10, pady = 10, columnspan = 2)
+
+		self.loginButton = tk.Button(self, foreground = 'blue', border = 3, relief = "groove" , text = 'Login')
+		self.loginButton["command"] = lambda: self.login_func(user_name, pword, controller)
+		self.loginButton.grid(column = 3, row = 5, padx = (5, 100), pady = 30, ipadx = 25, ipady = 0, columnspan = 2)
+
+		self.exitButton = tk.Button(self, foreground = 'red', justify = tk.CENTER, border = 3, relief = "groove",text = 'Exit', command = self.quit)
+		self.exitButton.grid(column = 1, row = 5,  padx = (210,5), pady = 30, ipadx = 35, ipady = 0, columnspan = 2)
+
+		self.f = tk.Frame(self, bg = "red")
+		self.f.grid(row = 11, column = 5, columnspan = 2, pady = 0, padx = 0)
+		logo_canvas = tk.Canvas(self.f, width = 180, height = 55, bg= "yellow")
+		logo_canvas.grid(row = 11, column = 3, columnspan= 5, padx = 0, pady = 0)
+		logo_canvas.background = tk.PhotoImage(file=r'logo1.gif')
+		logo_canvas.create_image(95,30,image=logo_canvas.background)#,anchor='nw')
+
+
+		
+class Admin_Page(tk.Frame):
+
+	
+	def __init__(self, parent, controller):
+		tk.Frame.__init__(self, parent)
+
+		self.gray_frame= tk.Frame(self, bg = "gray", width = 750, pady = 0, padx = 0, height = 15)
+		self.gray_frame.grid(row = 0, column = 0, columnspan = 8)
+		# admin_menu = tk.Menubutton(frame2, text = "Edit")
+		# admin_menu.grid(row = 0, column = 0, columnspan = 2)
+
+		
+		label = tk.Label(self, text="Welcome Admin!", font=("Verdana", 10), justify = "right")
+		label.grid(row = 1, column = 6, pady=0, padx=2)
+		self.modify = tk.StringVar()
+
+		self.button_frame = tk.LabelFrame(self, border = 2, text = "Admin Options")
+		self.button_frame.grid(column = 0, row = 6, padx = (0, 10), pady = 50, rowspan = 2,ipadx = 3, ipady = 3, columnspan = 10)
+
+		# to modify an existing file/add new
+		self.partButton = tk.Button(self.button_frame, border = 2, text = 'Part Master', relief = "groove")
+		self.partButton["command"] = lambda: controller.show_frame(PartMaster)
+		self.partButton.grid(column = 0, row = 5, padx = 5, pady = 5, rowspan = 2,ipadx = 20, ipady = 3)
+		
+		# to edit users
+		self.userButton = tk.Button(self.button_frame, border = 2, text = 'User Master', relief = "groove")
+		self.userButton["command"] = lambda: controller.show_frame(UserMaster)
+		self.userButton.grid(column = 1, row = 5, padx = 5, pady = 5, rowspan = 2,ipadx = 20, ipady = 3)
+		
+
+		# singing out
+		self.logoutButton = tk.Button(self, foreground = 'red', cursor = "hand2", border = 3, justify = "right", relief = "flat" , text = 'Sign Out', font =("Verdana", 10))
+		self.logoutButton["command"] = lambda: controller.show_frame(LoginPage)
+		self.logoutButton.grid(column = 6, row = 0, padx = 0, pady = 0, ipadx = 1, ipady = 0)
+
+		self.f = tk.Frame(self, bg = "red")
+		self.f.grid(row = 10, column = 6, columnspan = 2, pady = 0, padx = 0)
+		logo_canvas = tk.Canvas(self.f, width = 180, height = 55, bg= "yellow")
+		logo_canvas.grid(row = 10, column = 0, columnspan= 5, padx = 0, pady = 0)
+		logo_canvas.background = tk.PhotoImage(file=r'logo1.gif')
+		logo_canvas.create_image(95,30,image=logo_canvas.background)#,anchor='nw')
+
+
+		
+
+class PartMaster(tk.Frame):
+
+	def attach_file(self):
+		global file_name
+		print "attach"
+		file_name = tkFileDialog.askopenfilename(defaultextension = ".pdf", title = "Select PDF")
+
+	def toggle_modify(self):
+		modify = self.modify.get()
+
+		if (modify == '0'):
+			self.rev_num_form.config(state = "disabled") 
+			self.rev_date_form.config(state = "disabled") 
+		elif (modify == '1'):
+			self.rev_num_form.config(state = "normal") 
+			self.rev_date_form.config(state = "normal") 
+
+
+	def __init__(self, parent, controller):
+		tk.Frame.__init__(self, parent)
+		
+		# get value from radiobutton to modify/create new PDF
+		# declaring variables
+		self.gray_frame= tk.Frame(self, bg = "gray", width = 750,  height = 15)
+		self.gray_frame.grid(row = 0, column = 0, columnspan = 9, pady = 0, padx = 0)
+		# singing out
+		self.logoutButton = tk.Button(self, foreground = 'red', cursor = "hand2", border = 3, justify = "right", relief = "flat" , text = 'Sign Out', font =("Verdana", 10))
+		self.logoutButton["command"] = lambda: controller.show_frame(LoginPage)
+		self.logoutButton.grid(column = 6, row = 0, padx = 0, pady = 0, ipadx = 1, ipady = 0)
+
+		part_number = tk.StringVar() 
+		part_name = tk.StringVar() # defines the widget state as string
+		rev_number = tk.StringVar()
+		date = tk.IntVar()
+		month = tk.IntVar()
+		year = tk.IntVar()
+
+		self.label1 = tk.Label(self, text="Enter details & upload PDF", font=LARGE_FONT)
+		self.label1.grid(row = 0, column = 1,pady=15, padx= 20)
+
+		self.part_label = tk.Label(self, text = "    Part Number:", justify = "left")
+		self.part_label.grid(row = 3, column = 1, padx = 10, pady = 10)
+
+		self.part_form = tk.Entry(self,textvariable = part_number, width = 27) # adds a textarea widget
+		self.part_form.grid(row = 3, column = 2, padx = 20 ,pady = 10,columnspan = 4)
+
+
+		self.part_name_label = tk.Label(self, text = "Part Name:", justify = "left")
+		self.part_name_label.grid(row = 4, column = 1, padx = 10, pady = 10)
+
+		self.part_name_form = tk.Entry(self,textvariable=part_name, width = 27) # adds a textarea widget
+		self.part_name_form.grid(row = 4, column = 2, padx = 20, pady = 10, columnspan = 4)
+
+		self.rev_num_label = tk.Label(self, text = "       Drawing Revision Number:", justify ="left")
+		self.rev_num_label.grid(row = 5, column = 1, ipadx = 5, padx = 10, pady = 10, columnspan = 2)
+
+		self.rev_num_form = tk.Entry(self,textvariable = rev_number)
+		self.rev_num_form.grid(row = 5, column = 2, padx = 5, pady = 10,columnspan = 4)
+		
+		self.rev_date_label = tk.Label(self, text = "Drawing Revision Date:", justify = "left")
+		self.rev_date_label.grid(row = 6, column = 1, padx = 5, pady = 10, columnspan = 2)
+
+		self.rev_date_form = tk.Entry(self, textvariable = rev_number)
+		self.rev_date_form.grid(row = 6, column = 2, padx = 5, pady = 10,columnspan = 4)
+
+		# make date widget over here!
+		self.date_label = tk.Label(self, text = "   Receipt Date:", justify = "left")
+		self.date_label.grid(row = 7, column = 1, padx = 10, pady = 10)
+
+		self.date_form = tk.Entry(self,textvariable=date)
+		self.date_form.grid(row = 7, column = 2, padx = 10, pady = 10,columnspan = 4)
+
+		self.button_frame = tk.LabelFrame(self, border = 2, text = "Options")
+		self.button_frame.grid(column = 0, row = 9, padx = 5, pady = 25, rowspan = 2,ipadx = 3, ipady = 3, columnspan = 7)
+
+		self.modify = tk.StringVar()
+		self.modify.set('1')
+		# to add a new file
+		self.newButton = tk.Radiobutton(self.button_frame, border = 2, text = 'Add', relief = "groove", variable=self.modify, value = 0, indicatoron = 0)
+		self.newButton["command"] = self.toggle_modify
+		self.newButton.grid(column = 1, row = 9 , padx = 6, pady = 3, rowspan = 2,ipadx = 30, ipady = 3)
+		# to modify an existing file
+		self.modifyButton = tk.Radiobutton(self.button_frame, border = 2, text = 'Modify', relief = "groove", variable=self.modify, value = 1, indicatoron = 0)
+		self.modifyButton["command"] = self.toggle_modify
+		self.modifyButton.grid(column = 2, row = 9, padx = 6, pady = 3, rowspan = 2,ipadx = 30, ipady = 3)
+
+		self.attachButton = tk.Button(self.button_frame, border = 2, text = 'Attach PDF!', relief = "groove", foreground = 'blue')
+		self.attachButton["command"] = self.attach_file
+		self.attachButton.grid(column = 3, row = 9, padx = 6, pady = 3, rowspan = 2,ipadx = 20, ipady = 3)
+
+
+		self.saveButton = tk.Button(self.button_frame, border = 2, text = 'Save', relief = "groove", foreground = 'darkgreen')
+		# self.saveButton["command"] = self.file_upload
+		self.saveButton.grid(column = 1, row = 11, padx = 6, pady = 3, rowspan = 2,ipadx = 30, ipady = 3)
+
+		self.cancelButton = tk.Button(self.button_frame, border = 2, text = 'Cancel', relief = "groove", foreground = 'red')
+		self.cancelButton["command"] = lambda: controller.show_frame(Admin_Page)
+		self.cancelButton.grid(column = 2, row = 11, padx = 6, pady = 3, rowspan = 2,ipadx = 30, ipady = 3)
+
+		self.f = tk.Frame(self, bg = "red")
+		self.f.grid(row = 10, column = 7, columnspan = 1, pady = 0, padx = 0)
+		logo_canvas = tk.Canvas(self.f, width = 120, height = 35, bg= "yellow")
+		logo_canvas.grid(row = 10, column = 3, columnspan= 5, padx = 0, pady = 0)
+		logo_canvas.background = tk.PhotoImage(file=r'logo.gif')
+		logo_canvas.create_image(60, 18,image=logo_canvas.background)#,anchor='nw')
+
+
+
+	
+class UserMaster(tk.Frame):
+
+	
+	def __init__(self, parent, controller):
+		tk.Frame.__init__(self, parent)
+		
+		# get value from radiobutton to modify/create new PDF
+		# declaring variables
+		self.gray_frame = tk.Frame(self, bg = "gray", width = 750, pady = 0, padx = 0, height = 15)
+		self.gray_frame.grid(row = 0, column = 0, columnspan = 7)
+		# admin_menu = tk.Menubutton(frame2, text = "Edit")
+		# admin_menu.grid(row = 0, column = 0, columnspan = 2)
+		
+		self.label = tk.Label(self, text="Welcome Admin!", font=("Verdana", 10), justify = "right")
+		self.label.grid(row = 1, column = 6, pady=0, padx=2)
+
+		# singing out
+		self.logoutButton = tk.Button(self, foreground = 'red', cursor = "hand2", border = 3, justify = "right", relief = "flat" , text = 'Sign Out', font =("Verdana", 10))
+		self.logoutButton["command"] = lambda: controller.show_frame(LoginPage)
+		self.logoutButton.grid(column = 6, row = 0, padx = 0, pady = 0, ipadx = 1, ipady = 0)
+
+		self.cancelButton = tk.Button(self, border = 2, text = 'Cancel', relief = "groove", foreground = 'red')
+		self.cancelButton["command"] = lambda: controller.show_frame(Admin_Page)
+		self.cancelButton.grid(column = 2, row = 11, padx = 6, pady = 3, rowspan = 2,ipadx = 30, ipady = 3)
+
+	
+		self.f = tk.Frame(self, bg = "red")
+		self.f.grid(row = 10, column = 6, columnspan = 1, pady = 0, padx = 0)
+		logo_canvas = tk.Canvas(self.f, width = 120, height = 35, bg= "yellow")
+		logo_canvas.grid(row = 10, column = 3, columnspan= 5, padx = 0, pady = 0)
+		logo_canvas.background = tk.PhotoImage(file=r'logo.gif')
+		logo_canvas.create_image(60, 18,image=logo_canvas.background)#,anchor='nw')
+
+
+
+			
+
+app = Application()
+app.mainloop()
